@@ -2,26 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bulletin Collège - بيان النقط</title>
-
-<!-- 🔒 Content Security Policy : يمنع السكريبتات الخبيثة -->
-<meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
-               script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; 
-               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-               font-src 'self' https://fonts.gstatic.com; 
-               img-src 'self' data: blob:; 
-               connect-src 'self';">
-
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta name="referrer" content="strict-origin-when-cross-origin">
-
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <style>
   * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
   body { margin: 0; background: #f0f2f5; padding: 20px; }
@@ -82,6 +67,7 @@
   }
   table.eleves-table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
   table.eleves-table tr:nth-child(even) { background: #f9fafc; }
+  table.eleves-table tr.selected { background: #d4edda !important; }
 
   button {
     background: #1a3a6b; color: #fff; border: none;
@@ -239,10 +225,10 @@
   <div id="tab-simple" class="tab-content active no-print">
     <h3 class="section-title">👤 Informations de l'élève / معلومات التلميذ</h3>
     <div class="form-grid">
-      <div><label>Nom de l'élève (FR)</label><input type="text" id="nomFr" maxlength="100" placeholder="Ahmed Benali"></div>
-      <div><label>اسم التلميذ (AR)</label><input type="text" id="nomAr" maxlength="100" placeholder="أحمد بنعلي" dir="rtl"></div>
-      <div><label>Classe (FR)</label><input type="text" id="classe" maxlength="50" placeholder="1ère année collège A"></div>
-      <div><label>القسم (AR)</label><input type="text" id="classeAr" maxlength="50" placeholder="الأولى إعدادي أ" dir="rtl"></div>
+      <div><label>Nom de l'élève (FR)</label><input type="text" id="nomFr" placeholder="Ahmed Benali"></div>
+      <div><label>اسم التلميذ (AR)</label><input type="text" id="nomAr" placeholder="أحمد بنعلي" dir="rtl"></div>
+      <div><label>Classe (FR)</label><input type="text" id="classe" placeholder="1ère année collège A"></div>
+      <div><label>القسم (AR)</label><input type="text" id="classeAr" placeholder="الأولى إعدادي أ" dir="rtl"></div>
       <div>
         <label>Semestre / الأسدوس</label>
         <select id="semestre">
@@ -250,16 +236,16 @@
           <option value="2ème Semestre / الأسدوس الثاني">2ème Semestre / الأسدوس الثاني</option>
         </select>
       </div>
-      <div><label>Année scolaire / السنة الدراسية</label><input type="text" id="annee" maxlength="20" placeholder="2025-2026"></div>
-      <div><label>Établissement (FR)</label><input type="text" id="etab" maxlength="100" placeholder="Nom du collège"></div>
-      <div><label>المؤسسة (AR)</label><input type="text" id="etabAr" maxlength="100" placeholder="اسم المؤسسة" dir="rtl"></div>
-      <div><label>Nom du professeur principal / الأستاذ</label><input type="text" id="prof" maxlength="100" placeholder="Nom du professeur"></div>
+      <div><label>Année scolaire / السنة الدراسية</label><input type="text" id="annee" placeholder="2025-2026"></div>
+      <div><label>Établissement (FR)</label><input type="text" id="etab" placeholder="Nom du collège"></div>
+      <div><label>المؤسسة (AR)</label><input type="text" id="etabAr" placeholder="اسم المؤسسة" dir="rtl"></div>
+      <div><label>Nom du professeur principal / الأستاذ</label><input type="text" id="prof" placeholder="Nom du professeur"></div>
     </div>
 
     <h3 class="section-title">🏫 Logo du collège / شعار المؤسسة</h3>
     <div class="logo-upload-box" style="display:flex; align-items:center; gap:15px; padding:10px 15px; background:#f5f7fa; border-radius:8px; margin-bottom:15px;">
       <label for="logoInput" style="font-weight:600;color:#1a3a6b;font-size:14px;">Choisir un logo :</label>
-      <input type="file" id="logoInput" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" onchange="chargerLogo(event)" style="padding:6px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px;">
+      <input type="file" id="logoInput" accept="image/*" onchange="chargerLogo(event)" style="padding:6px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px;">
       <div class="logo-preview" id="logoPreview" style="width:60px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-size:11px;color:#999;">Aucun logo</div>
       <button class="btn-red btn-small" onclick="supprimerLogo()">✖ Supprimer</button>
     </div>
@@ -303,10 +289,16 @@
 
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:15px;">
       <button class="btn-green" onclick="genererTousBulletins()">✅ Générer tous les bulletins</button>
-      <button class="btn-orange" onclick="telechargerTousPDF()">📥 Télécharger tous les PDF (séparés)</button>
+      <button class="btn-orange" onclick="telechargerTousPDF()">📥 Télécharger les PDF sélectionnés</button>
       <button class="btn-blue" onclick="telechargerPDFUnique()">📄 PDF unique (tous les élèves)</button>
       <button class="btn-red" onclick="viderEleves()">🗑️ Vider la liste</button>
       <span id="compteurEleves" style="margin-left:auto;font-weight:bold;color:#1a3a6b;">0 élève(s)</span>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+      <button class="btn-purple btn-small" onclick="toutSelectionner()">✅ Tout sélectionner</button>
+      <button class="btn-red btn-small" onclick="toutDesSelectionner()">❌ Tout désélectionner</button>
+      <span id="compteurSelection" style="font-weight:bold;color:#14803c;">0 sélectionné(s)</span>
     </div>
 
     <div class="eleves-list" id="elevesList">
@@ -350,41 +342,8 @@
 </div>
 
 <script>
-"use strict";
-
 let logoDataURL = "";
 let elevesData = {};
-
-/* =========================================================
-   🔒 SÉCURITÉ : Échapper le HTML (anti-XSS)
-   ========================================================= */
-function escapeHTML(str) {
-  if (str === null || str === undefined) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/* =========================================================
-   🔒 SÉCURITÉ : Valider une note (0-20)
-   ========================================================= */
-function validerNote(note) {
-  const n = parseFloat(note);
-  if (isNaN(n)) return "";
-  if (n < 0 || n > 20) return "";
-  return String(n);
-}
-
-/* =========================================================
-   🔒 SÉCURITÉ : Nettoyer un nom (lettres, chiffres, espaces, tirets)
-   ========================================================= */
-function nettoyerTexte(str, maxLength = 100) {
-  if (!str) return "";
-  return String(str).trim().slice(0, maxLength);
-}
 
 /* =========================================================
    MATIÈRES PAR DÉFAUT (COLLÈGE)
@@ -401,6 +360,9 @@ const MATIERES_DEFAUT = [
   { fr: "Éducation Physique",           ar: "التربية البدنية" }
 ];
 
+/* =========================================================
+   APPRÉCIATION FR
+   ========================================================= */
 function getAppreciationFR(note) {
   if (isNaN(note)) return "—";
   if (note >= 16) return "Excellent";
@@ -410,6 +372,9 @@ function getAppreciationFR(note) {
   return "Insuffisant";
 }
 
+/* =========================================================
+   APPRÉCIATION AR
+   ========================================================= */
 function getAppreciationAR(note) {
   if (isNaN(note)) return "—";
   if (note >= 16) return "ممتاز";
@@ -426,47 +391,20 @@ function switchTab(tabId, btn) {
   btn.classList.add("active");
 }
 
-/* =========================================================
-   LOGO : validation du type et de la taille
-   ========================================================= */
 function chargerLogo(event) {
   const file = event.target.files[0];
   if (!file) return;
-
-  // ✅ Validation du type
-  const typesAutorises = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"];
-  if (!typesAutorises.includes(file.type)) {
-    alert("❌ Type de fichier non autorisé. Utilisez PNG, JPG, GIF ou WEBP.");
-    event.target.value = "";
-    return;
-  }
-
-  // ✅ Validation de la taille (max 2 Mo)
-  if (file.size > 2 * 1024 * 1024) {
-    alert("❌ Le logo ne doit pas dépasser 2 Mo.");
-    event.target.value = "";
-    return;
-  }
-
   const reader = new FileReader();
   reader.onload = function(e) {
     logoDataURL = e.target.result;
-    const preview = document.getElementById("logoPreview");
-    // On crée l'image en JS pour éviter l'injection
-    preview.textContent = "";
-    const img = document.createElement("img");
-    img.src = logoDataURL;
-    img.alt = "Logo";
-    img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain;";
-    preview.appendChild(img);
+    document.getElementById("logoPreview").innerHTML = `<img src="${logoDataURL}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">`;
   };
   reader.readAsDataURL(file);
 }
-
 function supprimerLogo() {
   logoDataURL = "";
   document.getElementById("logoInput").value = "";
-  document.getElementById("logoPreview").textContent = "Aucun logo";
+  document.getElementById("logoPreview").innerHTML = "Aucun logo";
 }
 
 /* =========================================================
@@ -476,54 +414,12 @@ function ajouterMatiere(fr = "", ar = "", note = "") {
   const tbody = document.getElementById("corpsSaisie");
   const tr = document.createElement("tr");
   tr.className = "ligne-matiere";
-
-  // ✅ Création en JS pur (pas d'innerHTML avec données utilisateur)
-  const td1 = document.createElement("td");
-  td1.style.cssText = "border:1px solid #000;padding:3px;";
-  const inputFr = document.createElement("input");
-  inputFr.type = "text";
-  inputFr.className = "m-fr";
-  inputFr.value = fr;
-  inputFr.maxLength = 100;
-  inputFr.style.cssText = "width:100%;border:none;padding:5px;font-size:13px;text-align:left;padding-left:8px;background:transparent;font-weight:bold;";
-  td1.appendChild(inputFr);
-
-  const td2 = document.createElement("td");
-  td2.style.cssText = "border:1px solid #000;padding:3px;";
-  const inputNote = document.createElement("input");
-  inputNote.type = "number";
-  inputNote.className = "n-note note";
-  inputNote.min = "0";
-  inputNote.max = "20";
-  inputNote.step = "0.25";
-  inputNote.value = note;
-  inputNote.placeholder = "—";
-  inputNote.style.cssText = "width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;";
-  td2.appendChild(inputNote);
-
-  const td3 = document.createElement("td");
-  td3.style.cssText = "border:1px solid #000;padding:3px;";
-  const inputAr = document.createElement("input");
-  inputAr.type = "text";
-  inputAr.className = "m-ar ar";
-  inputAr.value = ar;
-  inputAr.dir = "rtl";
-  inputAr.maxLength = 100;
-  inputAr.style.cssText = "width:100%;border:none;padding:5px;font-size:15px;text-align:right;padding-right:8px;background:transparent;font-weight:bold;font-family:'Amiri','Cairo','Traditional Arabic',Arial;";
-  td3.appendChild(inputAr);
-
-  const td4 = document.createElement("td");
-  td4.style.cssText = "border:1px solid #000;padding:3px;text-align:center;";
-  const btnSupp = document.createElement("button");
-  btnSupp.className = "btn-red btn-small";
-  btnSupp.textContent = "✖";
-  btnSupp.onclick = function() { supprimerMatiere(this); };
-  td4.appendChild(btnSupp);
-
-  tr.appendChild(td1);
-  tr.appendChild(td2);
-  tr.appendChild(td3);
-  tr.appendChild(td4);
+  tr.innerHTML = `
+    <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-fr" value="${fr}" style="width:100%;border:none;padding:5px;font-size:13px;text-align:left;padding-left:8px;background:transparent;font-weight:bold;"></td>
+    <td style="border:1px solid #000;padding:3px;"><input type="number" class="n-note note" min="0" max="20" step="0.25" value="${note}" placeholder="—" style="width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;"></td>
+    <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-ar ar" value="${ar}" dir="rtl" style="width:100%;border:none;padding:5px;font-size:15px;text-align:right;padding-right:8px;background:transparent;font-weight:bold;font-family:'Amiri','Cairo','Traditional Arabic',Arial;"></td>
+    <td style="border:1px solid #000;padding:3px;text-align:center;"><button class="btn-red btn-small" onclick="supprimerMatiere(this)">✖</button></td>
+  `;
   tbody.appendChild(tr);
 }
 
@@ -535,23 +431,23 @@ function supprimerMatiere(btn) {
    GÉNÉRER LE BULLETIN (élève unique)
    ========================================================= */
 function genererBulletin() {
-  const nomFr = nettoyerTexte(document.getElementById("nomFr").value, 100) || "—";
-  const nomAr = nettoyerTexte(document.getElementById("nomAr").value, 100) || "—";
-  const classe = nettoyerTexte(document.getElementById("classe").value, 50) || "—";
-  const classeAr = nettoyerTexte(document.getElementById("classeAr").value, 50) || "—";
+  const nomFr = document.getElementById("nomFr").value || "—";
+  const nomAr = document.getElementById("nomAr").value || "—";
+  const classe = document.getElementById("classe").value || "—";
+  const classeAr = document.getElementById("classeAr").value || "—";
   const sem = document.getElementById("semestre").value || "—";
-  const annee = nettoyerTexte(document.getElementById("annee").value, 20) || "—";
-  const etab = nettoyerTexte(document.getElementById("etab").value, 100) || "—";
-  const etabAr = nettoyerTexte(document.getElementById("etabAr").value, 100) || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
 
   const tbody = document.getElementById("corpsSaisie");
   const matieres = [];
 
   tbody.querySelectorAll(".ligne-matiere").forEach(tr => {
     matieres.push({
-      matFR: nettoyerTexte(tr.querySelector(".m-fr")?.value || "", 100),
-      matAR: nettoyerTexte(tr.querySelector(".m-ar")?.value || "", 100),
-      note: validerNote(tr.querySelector(".n-note")?.value || "")
+      matFR: tr.querySelector(".m-fr")?.value.trim() || "",
+      matAR: tr.querySelector(".m-ar")?.value.trim() || "",
+      note: tr.querySelector(".n-note")?.value || ""
     });
   });
 
@@ -562,7 +458,7 @@ function genererBulletin() {
 }
 
 /* =========================================================
-   CONSTRUIRE LE HTML DU BULLETIN (avec échappement)
+   CONSTRUIRE LE HTML DU BULLETIN
    ========================================================= */
 function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
   let htmlLignes = "";
@@ -580,42 +476,40 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
       nbNotes++;
     }
 
-    // ✅ Toutes les données utilisateur passent par escapeHTML
     htmlLignes += `
       <tr>
-        <td class="nom-fr">${escapeHTML(m.matFR || "—")}</td>
-        <td>${escapeHTML(noteAff)}</td>
-        <td class="apprec-fr">${escapeHTML(apprecFR)} <span style="color:#000; font-family:'Amiri','Cairo','Traditional Arabic',Arial; font-size:14px;"> / ${escapeHTML(apprecAR)}</span></td>
-        <td class="nom-ar">${escapeHTML(m.matAR || "—")}</td>
+        <td class="nom-fr">${m.matFR || "—"}</td>
+        <td>${noteAff}</td>
+        <td class="apprec-fr">${apprecFR} <span style="color:#000; font-family:'Amiri','Cairo','Traditional Arabic',Arial; font-size:14px;"> / ${apprecAR}</span></td>
+        <td class="nom-ar">${m.matAR || "—"}</td>
       </tr>
     `;
   });
 
   const moyGen = nbNotes > 0 ? (sommeNotes / nbNotes) : 0;
+
   const mentionFr = getAppreciationFR(moyGen);
   const mentionAr = getAppreciationAR(moyGen);
 
-  // ✅ Logo : on vérifie qu'il s'agit bien d'un data:image
-  const logoValide = logoDataURL && /^data:image\/(png|jpeg|jpg|gif|webp);base64,/.test(logoDataURL);
-  const logoHTML = logoValide
+  const logoHTML = logoDataURL
     ? `<img src="${logoDataURL}" alt="Logo école">`
     : `<div class="logo-placeholder">Logo<br>شعار</div>`;
 
   return `
     <div class="bulletin-header">
-      <div class="fr"><strong>${escapeHTML(etab)}</strong><br>Année scolaire : ${escapeHTML(annee)}</div>
+      <div class="fr"><strong>${etab}</strong><br>Année scolaire : ${annee}</div>
       <div class="logo-zone">${logoHTML}</div>
-      <div class="ar"><strong>${escapeHTML(etabAr)}</strong><br>السنة الدراسية: ${escapeHTML(annee)}</div>
+      <div class="ar"><strong>${etabAr}</strong><br>السنة الدراسية: ${annee}</div>
     </div>
     <div class="bulletin-title">
       BULLETIN SCOLAIRE — <span style="font-family:'Amiri','Cairo','Traditional Arabic', Arial; font-size:22px;">بيان النقط</span>
-      <div style="font-size:12px; margin-top:2px;">${escapeHTML(sem)}</div>
+      <div style="font-size:12px; margin-top:2px;">${sem}</div>
     </div>
     <div class="info-eleve">
-      <div><strong>Nom :</strong> ${escapeHTML(eleve.nomFr)}</div>
-      <div class="info-ar"><strong>الاسم:</strong> ${escapeHTML(eleve.nomAr)}</div>
-      <div><strong>Classe :</strong> ${escapeHTML(eleve.classe)}</div>
-      <div class="info-ar"><strong>القسم:</strong> ${escapeHTML(eleve.classeAr)}</div>
+      <div><strong>Nom :</strong> ${eleve.nomFr}</div>
+      <div class="info-ar"><strong>الاسم:</strong> ${eleve.nomAr}</div>
+      <div><strong>Classe :</strong> ${eleve.classe}</div>
+      <div class="info-ar"><strong>القسم:</strong> ${eleve.classeAr}</div>
     </div>
     <table class="bulletin-table">
       <colgroup>
@@ -639,12 +533,12 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">
         <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;">
           <div style="font-size:13px; font-weight:bold; color:#000;">Appréciation Générale</div>
-          <div style="font-size:22px; font-weight:bold; color:#000; margin-top:8px;">${escapeHTML(mentionFr)}</div>
+          <div style="font-size:22px; font-weight:bold; color:#000; margin-top:8px;">${mentionFr}</div>
         </div>
         
         <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;" dir="rtl">
           <div style="font-size:15px; font-weight:bold; color:#000; font-family:'Amiri','Cairo','Traditional Arabic',Arial;">التقدير العام</div>
-          <div style="font-size:22px; font-weight:bold; color:#000; margin-top:8px; font-family:'Amiri','Cairo','Traditional Arabic',Arial;">${escapeHTML(mentionAr)}</div>
+          <div style="font-size:22px; font-weight:bold; color:#000; margin-top:8px; font-family:'Amiri','Cairo','Traditional Arabic',Arial;">${mentionAr}</div>
         </div>
       </div>
     </div>
@@ -666,8 +560,8 @@ function telechargerPDF() {
   }
   document.getElementById("loading").style.display = "flex";
   document.getElementById("progressText").textContent = "Génération...";
-  const nom = (document.getElementById("nomFr").value || "eleve").replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "_").slice(0, 50);
-  const sem = (document.getElementById("semestre").value || "semestre").replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "_").slice(0, 30);
+  const nom = (document.getElementById("nomFr").value || "eleve").replace(/\s+/g, "_");
+  const sem = (document.getElementById("semestre").value || "semestre").replace(/\s+/g, "_");
 
   html2canvas(bulletin, { scale: 3, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 1000 })
     .then(canvas => {
@@ -702,131 +596,112 @@ function telechargerPDF() {
 }
 
 /* =========================================================
-   IMPORT FICHIER EXCEL (avec nettoyage)
+   IMPORT FICHIER EXCEL
    ========================================================= */
 function importerFichier(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // ✅ Validation de la taille du fichier (max 5 Mo)
-  if (file.size > 5 * 1024 * 1024) {
-    alert("❌ Fichier trop volumineux (max 5 Mo)");
-    event.target.value = "";
-    return;
-  }
-
   const reader = new FileReader();
   reader.onload = function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      elevesData = {};
+    elevesData = {};
 
-      rows.forEach(row => {
-        // ✅ Nettoyage de chaque valeur
-        const nomFr = nettoyerTexte(row.nom_fr, 100);
-        const nomAr = nettoyerTexte(row.nom_ar, 100);
-        const classe = nettoyerTexte(row.classe, 50);
-        const classeAr = nettoyerTexte(row.classe_ar, 50);
-        if (!nomFr && !nomAr) return;
-
-        const key = nomFr + "|" + nomAr + "|" + classe;
-        if (!elevesData[key]) {
-          elevesData[key] = {
-            nomFr: nomFr || "—",
-            nomAr: nomAr || "—",
-            classe: classe || "—",
-            classeAr: classeAr || "—",
-            matieres: []
-          };
-        }
-        elevesData[key].matieres.push({
-          matFR: nettoyerTexte(row.matiere_fr, 100),
-          matAR: nettoyerTexte(row.matiere_ar, 100),
-          note: validerNote(row.note)
-        });
+    rows.forEach(row => {
+      const nomFr = String(row.nom_fr || "").trim();
+      const nomAr = String(row.nom_ar || "").trim();
+      const classe = String(row.classe || "").trim();
+      const classeAr = String(row.classe_ar || "").trim();
+      if (!nomFr && !nomAr) return;
+      const key = nomFr + "|" + nomAr + "|" + classe;
+      if (!elevesData[key]) {
+        elevesData[key] = { 
+          nomFr: nomFr || "—", 
+          nomAr: nomAr || "—", 
+          classe: classe || "—", 
+          classeAr: classeAr || "—", 
+          matieres: [] 
+        };
+      }
+      elevesData[key].matieres.push({
+        matFR: String(row.matiere_fr || "").trim(),
+        matAR: String(row.matiere_ar || "").trim(),
+        note: row.note !== "" ? String(row.note) : ""
       });
+    });
 
-      afficherListeEleves();
-      document.getElementById("compteurEleves").textContent = Object.keys(elevesData).length + " élève(s)";
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erreur lors de la lecture du fichier. Vérifiez le format.");
-    }
+    afficherListeEleves();
+    document.getElementById("compteurEleves").textContent = Object.keys(elevesData).length + " élève(s)";
   };
   reader.readAsArrayBuffer(file);
 }
 
+/* =========================================================
+   AFFICHER LA LISTE DES ÉLÈVES (m3a checkbox)
+   ========================================================= */
 function afficherListeEleves() {
   const conteneur = document.getElementById("elevesList");
   const keys = Object.keys(elevesData);
-  conteneur.textContent = "";
-
   if (keys.length === 0) {
-    const p = document.createElement("p");
-    p.style.cssText = "text-align:center;color:#999;padding:20px;";
-    p.textContent = "Aucun élève importé";
-    conteneur.appendChild(p);
+    conteneur.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Aucun élève importé</p>';
     return;
   }
-
-  const table = document.createElement("table");
-  table.className = "eleves-table";
-  const thead = document.createElement("thead");
-  thead.innerHTML = `<tr>
+  let html = `<table class="eleves-table"><thead><tr>
+    <th style="width:5%;">✓</th>
     <th>#</th><th>Nom (FR)</th><th>الاسم (AR)</th><th>Classe</th><th>القسم</th><th>Nb. matières</th><th>Action</th>
-  </tr>`;
-  table.appendChild(thead);
-
-  const tbody = document.createElement("tbody");
+  </tr></thead><tbody>`;
   keys.forEach((key, idx) => {
     const e = elevesData[key];
-    const tr = document.createElement("tr");
-
-    const cells = [
-      String(idx + 1),
-      e.nomFr,
-      e.nomAr,
-      e.classe,
-      e.classeAr,
-      String(e.matieres.length)
-    ];
-
-    cells.forEach((val, i) => {
-      const td = document.createElement("td");
-      // ✅ textContent pour éviter toute injection
-      td.textContent = val;
-      if (i === 2 || i === 4) {
-        td.style.cssText = "font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;";
-      }
-      tr.appendChild(td);
-    });
-
-    const tdAction = document.createElement("td");
-    const btn = document.createElement("button");
-    btn.className = "btn-blue btn-small";
-    btn.textContent = "👁️ Voir";
-    btn.onclick = function() { voirBulletin(key); };
-    tdAction.appendChild(btn);
-    tr.appendChild(tdAction);
-
-    tbody.appendChild(tr);
+    html += `<tr>
+      <td><input type="checkbox" class="check-eleve" data-key="${key.replace(/"/g, '&quot;')}" checked onchange="updateCompteurSelection()"></td>
+      <td>${idx + 1}</td>
+      <td>${e.nomFr}</td>
+      <td style="font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">${e.nomAr}</td>
+      <td>${e.classe}</td>
+      <td style="font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">${e.classeAr}</td>
+      <td>${e.matieres.length}</td>
+      <td><button class="btn-blue btn-small" onclick="voirBulletin('${key.replace(/'/g, "\\'")}')">👁️ Voir</button></td>
+    </tr>`;
   });
-  table.appendChild(tbody);
-  conteneur.appendChild(table);
+  html += "</tbody></table>";
+  conteneur.innerHTML = html;
+  updateCompteurSelection();
+}
+
+/* =========================================================
+   COMPTEUR SÉLECTION
+   ========================================================= */
+function updateCompteurSelection() {
+  const nb = document.querySelectorAll(".check-eleve:checked").length;
+  const total = document.querySelectorAll(".check-eleve").length;
+  const el = document.getElementById("compteurSelection");
+  if (el) el.textContent = `${nb} / ${total} sélectionné(s)`;
+}
+
+/* =========================================================
+   TOUT SÉLECTIONNER / DÉSÉLECTIONNER
+   ========================================================= */
+function toutSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = true);
+  updateCompteurSelection();
+}
+function toutDesSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = false);
+  updateCompteurSelection();
 }
 
 function voirBulletin(key) {
   const e = elevesData[key];
   if (!e) return;
   const sem = document.getElementById("semestre").value || "—";
-  const annee = nettoyerTexte(document.getElementById("annee").value, 20) || "—";
-  const etab = nettoyerTexte(document.getElementById("etab").value, 100) || "—";
-  const etabAr = nettoyerTexte(document.getElementById("etabAr").value, 100) || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
   document.getElementById("bulletin").innerHTML = construireBulletinHTML(e, sem, annee, etab, etabAr);
   document.getElementById("bulletin").style.display = "block";
   document.getElementById("bulletin").scrollIntoView({ behavior: "smooth" });
@@ -839,9 +714,9 @@ function genererTousBulletins() {
   const keys = Object.keys(elevesData);
   if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
   const sem = document.getElementById("semestre").value || "—";
-  const annee = nettoyerTexte(document.getElementById("annee").value, 20) || "—";
-  const etab = nettoyerTexte(document.getElementById("etab").value, 100) || "—";
-  const etabAr = nettoyerTexte(document.getElementById("etabAr").value, 100) || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
   let html = "";
   keys.forEach(key => {
     html += `<div style="page-break-after: always; margin-bottom: 30px;">`;
@@ -854,23 +729,32 @@ function genererTousBulletins() {
 }
 
 /* =========================================================
-   TÉLÉCHARGER TOUS LES PDF (SÉPARÉS)
+   TÉLÉCHARGER LES PDF SÉLECTIONNÉS
    ========================================================= */
 async function telechargerTousPDF() {
-  const keys = Object.keys(elevesData);
-  if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
+  // 🔑 Khod ghir l'élèves li checkbox dialhom actif
+  const keysSelectionnes = [];
+  document.querySelectorAll(".check-eleve:checked").forEach(cb => {
+    keysSelectionnes.push(cb.getAttribute("data-key"));
+  });
+
+  if (keysSelectionnes.length === 0) {
+    alert("⚠️ Khass tkhtar 3la l'a9al élève wa7ed");
+    return;
+  }
+
   const sem = document.getElementById("semestre").value || "—";
-  const annee = nettoyerTexte(document.getElementById("annee").value, 20) || "—";
-  const etab = nettoyerTexte(document.getElementById("etab").value, 100) || "—";
-  const etabAr = nettoyerTexte(document.getElementById("etabAr").value, 100) || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
 
   document.getElementById("loading").style.display = "flex";
   const { jsPDF } = window.jspdf;
 
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
+  for (let i = 0; i < keysSelectionnes.length; i++) {
+    const key = keysSelectionnes[i];
     const e = elevesData[key];
-    document.getElementById("progressText").textContent = `${i + 1} / ${keys.length} — ${e.nomFr}`;
+    document.getElementById("progressText").textContent = `${i + 1} / ${keysSelectionnes.length} — ${e.nomFr}`;
 
     const tempDiv = document.createElement("div");
     tempDiv.style.position = "fixed"; tempDiv.style.left = "-9999px"; tempDiv.style.top = "0";
@@ -900,26 +784,26 @@ async function telechargerTousPDF() {
       } else {
         doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, marginY, renderW, renderH);
       }
-      const nomSafe = e.nomFr.replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "_").slice(0, 50);
+      const nomSafe = e.nomFr.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, "_");
       doc.save(`Bulletin_${nomSafe}.pdf`);
     } catch (err) { console.error("Erreur pour", e.nomFr, err); }
     tempDiv.remove();
     await new Promise(r => setTimeout(r, 800));
   }
   document.getElementById("loading").style.display = "none";
-  alert(`✅ ${keys.length} PDF générés !`);
+  alert(`✅ ${keysSelectionnes.length} PDF générés !`);
 }
 
 /* =========================================================
-   TÉLÉCHARGER PDF UNIQUE
+   TÉLÉCHARGER PDF UNIQUE (tous les élèves)
    ========================================================= */
 async function telechargerPDFUnique() {
   const keys = Object.keys(elevesData);
   if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
   const sem = document.getElementById("semestre").value || "—";
-  const annee = nettoyerTexte(document.getElementById("annee").value, 20) || "—";
-  const etab = nettoyerTexte(document.getElementById("etab").value, 100) || "—";
-  const etabAr = nettoyerTexte(document.getElementById("etabAr").value, 100) || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
 
   document.getElementById("loading").style.display = "flex";
   const { jsPDF } = window.jspdf;
@@ -968,7 +852,7 @@ async function telechargerPDFUnique() {
     await new Promise(r => setTimeout(r, 200));
   }
 
-  const semSafe = sem.replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, "_").slice(0, 30);
+  const semSafe = sem.replace(/\s+/g, "_");
   doc.save(`Bulletins_College_${semSafe}.pdf`);
 
   document.getElementById("loading").style.display = "none";
@@ -978,11 +862,7 @@ async function telechargerPDFUnique() {
 function viderEleves() {
   if (!confirm("Vider la liste des élèves ?")) return;
   elevesData = {};
-  document.getElementById("elevesList").textContent = "";
-  const p = document.createElement("p");
-  p.style.cssText = "text-align:center;color:#999;padding:20px;";
-  p.textContent = "Aucun élève importé";
-  document.getElementById("elevesList").appendChild(p);
+  document.getElementById("elevesList").innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Aucun élève importé</p>';
   document.getElementById("compteurEleves").textContent = "0 élève(s)";
   document.getElementById("fileInput").value = "";
   document.getElementById("bulletin").style.display = "none";
