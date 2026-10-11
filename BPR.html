@@ -309,10 +309,16 @@
 
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:15px;">
       <button class="btn-green" onclick="genererTousBulletins()">✅ Générer tous les bulletins</button>
-      <button class="btn-orange" onclick="telechargerTousPDF()">📥 Télécharger tous les PDF (séparés)</button>
+      <button class="btn-orange" onclick="telechargerTousPDF()">📥 Télécharger les PDF sélectionnés</button>
       <button class="btn-blue" onclick="telechargerPDFUnique()">📄 PDF unique (tous les élèves)</button>
       <button class="btn-red" onclick="viderEleves()">🗑️ Vider la liste</button>
       <span id="compteurEleves" style="margin-left:auto;font-weight:bold;color:#1a3a6b;">0 élève(s)</span>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+      <button class="btn-purple btn-small" onclick="toutSelectionner()">✅ Tout sélectionner</button>
+      <button class="btn-red btn-small" onclick="toutDesSelectionner()">❌ Tout désélectionner</button>
+      <span id="compteurSelection" style="font-weight:bold;color:#14803c;">0 sélectionné(s)</span>
     </div>
 
     <div class="eleves-list" id="elevesList">
@@ -604,6 +610,9 @@ function importerFichier(event) {
   reader.readAsArrayBuffer(file);
 }
 
+/* =========================================================
+   AFFICHER LA LISTE DES ÉLÈVES (m3a checkbox)
+   ========================================================= */
 function afficherListeEleves() {
   const conteneur = document.getElementById("elevesList");
   const keys = Object.keys(elevesData);
@@ -612,11 +621,13 @@ function afficherListeEleves() {
     return;
   }
   let html = `<table class="eleves-table"><thead><tr>
+    <th style="width:5%;">✓</th>
     <th>#</th><th>Nom (FR)</th><th>الاسم (AR)</th><th>Classe</th><th>القسم</th><th>Nb. matières</th><th>Action</th>
   </tr></thead><tbody>`;
   keys.forEach((key, idx) => {
     const e = elevesData[key];
     html += `<tr>
+      <td><input type="checkbox" class="check-eleve" data-key="${key.replace(/"/g, '&quot;')}" checked onchange="updateCompteurSelection()"></td>
       <td>${idx + 1}</td>
       <td>${e.nomFr}</td>
       <td style="font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">${e.nomAr}</td>
@@ -628,6 +639,26 @@ function afficherListeEleves() {
   });
   html += "</tbody></table>";
   conteneur.innerHTML = html;
+  updateCompteurSelection();
+}
+
+/* =========================================================
+   COMPTEUR SÉLECTION + TOUT SÉLECTIONNER
+   ========================================================= */
+function updateCompteurSelection() {
+  const nb = document.querySelectorAll(".check-eleve:checked").length;
+  const total = document.querySelectorAll(".check-eleve").length;
+  const el = document.getElementById("compteurSelection");
+  if (el) el.textContent = `${nb} / ${total} sélectionné(s)`;
+}
+
+function toutSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = true);
+  updateCompteurSelection();
+}
+function toutDesSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = false);
+  updateCompteurSelection();
 }
 
 function voirBulletin(key) {
@@ -689,21 +720,18 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
     </tr>`;
   });
 
-  // 🔑 MOYENNE FR (m7souba, ma katbanch)
   const moyGenFR = (() => {
     let s = 0, c = 0;
     infos.forEach(i => { const n = parseFloat(i.nf); if (!isNaN(n)) { s += n; c++; } });
     return c > 0 ? s / c : 0;
   })();
 
-  // 🔑 MOYENNE AR (m7souba, ma katbanch)
   const moyGenAR = (() => {
     let s = 0, c = 0;
     infos.forEach(i => { const n = parseFloat(i.na); if (!isNaN(n)) { s += n; c++; } });
     return c > 0 ? s / c : 0;
   })();
 
-  // 🔑 APPRÉCIATION FR
   let mentionFr = "";
   if (moyGenFR >= 9)       mentionFr = "Excellent";
   else if (moyGenFR >= 8)  mentionFr = "Très bien";
@@ -711,7 +739,6 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
   else if (moyGenFR >= 5)  mentionFr = "Passable";
   else                     mentionFr = "Insuffisant";
 
-  // 🔑 APPRÉCIATION AR
   let mentionAr = "";
   if (moyGenAR >= 9)       mentionAr = "ممتاز";
   else if (moyGenAR >= 8)  mentionAr = "جيد جداً";
@@ -755,17 +782,14 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
       <tbody>${htmlLignes}</tbody>
     </table>
     
-    <!-- 🔑 APPRÉCIATIONS GHIR (bla moyennes) -->
     <div class="appreciation-box">
       <div class="label">Appréciations Générales</div>
       
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">
-        <!-- FR -->
         <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;">
           <div style="font-size:22px; font-weight:bold; color:#1a3a6b; margin-top:5px;">${mentionFr}</div>
         </div>
         
-        <!-- AR -->
         <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;" dir="rtl">
           <div style="font-size:22px; font-weight:bold; color:#14803c; margin-top:5px; font-family:'Amiri','Cairo','Traditional Arabic',Arial;">${mentionAr}</div>
         </div>
@@ -796,9 +820,21 @@ function genererTousBulletins() {
   document.getElementById("bulletin").scrollIntoView({ behavior: "smooth" });
 }
 
+/* =========================================================
+   TÉLÉCHARGER LES PDF SÉLECTIONNÉS
+   ========================================================= */
 async function telechargerTousPDF() {
-  const keys = Object.keys(elevesData);
-  if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
+  // 🔑 Khod ghir l'élèves li checkbox dialhom actif
+  const keys = [];
+  document.querySelectorAll(".check-eleve:checked").forEach(cb => {
+    keys.push(cb.getAttribute("data-key"));
+  });
+
+  if (keys.length === 0) {
+    alert("⚠️ Khass tkhtar 3la l'a9al élève wa7ed");
+    return;
+  }
+
   const sem = document.getElementById("semestre").value || "—";
   const annee = document.getElementById("annee").value || "—";
   const etab = document.getElementById("etab").value || "—";
