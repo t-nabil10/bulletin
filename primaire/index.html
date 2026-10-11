@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Bulletin Primaire - بيان النقط</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body { margin: 0; background: #f0f2f5; padding: 20px; }
+  h1 { text-align: center; color: #1a3a6b; }
+
+  .container {
+    max-width: 1200px; margin: auto; background: #fff;
+    padding: 25px; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+    margin-bottom: 20px;
+  }
+  .form-grid label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; font-size: 14px; }
+  .form-grid input, .form-grid select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: #fff; }
+
+  h3.section-title {
+    color: #1a3a6b; border-bottom: 2px solid #1a3a6b;
+    padding-bottom: 6px; margin-top: 25px;
+  }
+
+  .tabs {
+    display: flex; gap: 5px; margin-bottom: 15px;
+    border-bottom: 2px solid #1a3a6b;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: #eaf0f8; color: #1a3a6b;
+    border: none; padding: 10px 18px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 14px;
+    font-weight: 600; margin: 0;
+  }
+  .tab-btn.active { background: #1a3a6b; color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .import-box {
+    padding: 20px; background: #f5f7fa;
+    border: 2px dashed #1a3a6b;
+    border-radius: 10px; margin-bottom: 20px;
+  }
+  .import-box h4 { margin-top: 0; color: #1a3a6b; font-size: 15px; }
+  .import-box .info { font-size: 13px; color: #666; margin: 8px 0; line-height: 1.6; }
+  .import-box .info code { background: #fff; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #b83232; }
+
+  .eleves-list {
+    max-height: 400px; overflow-y: auto;
+    border: 2px solid #000; border-radius: 8px; margin-top: 15px;
+  }
+  table.eleves-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.eleves-table th {
+    background: #1a3a6b; color: #fff;
+    padding: 8px 6px; text-align: center;
+    position: sticky; top: 0; border: 1px solid #000;
+  }
+  table.eleves-table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+  table.eleves-table tr:nth-child(even) { background: #f9fafc; }
+
+  button {
+    background: #1a3a6b; color: #fff; border: none;
+    padding: 7px 14px; border-radius: 5px; cursor: pointer;
+    font-size: 13px; margin: 2px;
+  }
+  button:hover { background: #0f2647; }
+  .btn-green { background: #14803c; }
+  .btn-green:hover { background: #0e5c2b; }
+  .btn-red { background: #b83232; }
+  .btn-red:hover { background: #8c2424; }
+  .btn-orange { background: #e67e22; }
+  .btn-orange:hover { background: #b8651a; }
+  .btn-blue { background: #2c5aa0; }
+  .btn-blue:hover { background: #1e3f75; }
+  .btn-purple { background: #6a3fb5; }
+  .btn-purple:hover { background: #4e2d8a; }
+  .btn-small { padding: 3px 8px; font-size: 11px; }
+  .btn-add-unite { background: #6a3fb5; }
+  .btn-add-unite:hover { background: #4e2d8a; }
+
+  .actions { text-align: center; margin-top: 25px; }
+
+  #bulletin {
+    margin-top: 30px; padding: 20px; background: #fff;
+    display: none; width: 100%; position: relative;
+  }
+
+  .bulletin-header {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 7px; margin-bottom: 8px; gap: 8px;
+  }
+
+  .logo-zone {
+    display: flex; justify-content: center; align-items: center;
+    width: 100px; height: 100px; background: #fff;
+    border-radius: 0; border: 2px solid #000; overflow: hidden;
+  }
+  .logo-zone img { max-width: 92%; max-height: 92%; object-fit: contain; }
+  .logo-zone .logo-placeholder { font-size: 12px; color: #000; text-align: center; line-height: 1.2; font-weight: bold; font-family: 'Cairo', 'Amiri', Arial; }
+
+  .bulletin-header .fr { text-align: left; font-size: 11px; color: #000; font-weight: bold; line-height: 1.3; }
+  .bulletin-header .ar { text-align: right; direction: rtl; font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial; font-size: 14px; color: #000; font-weight: bold; line-height: 1.3; }
+
+  .bulletin-title {
+    text-align: center; font-size: 17px; font-weight: bold;
+    margin: 6px 0 4px 0; color: #000;
+  }
+
+  .info-eleve {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-bottom: 12px; font-size: 14px;
+    font-weight: bold;
+  }
+  .info-eleve div {
+    padding: 6px 10px; background: #fff;
+    border: 1px solid #000; border-radius: 4px; color: #000;
+    font-weight: bold;
+  }
+  .info-eleve div.info-ar {
+    text-align: right; direction: rtl;
+    font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial;
+    font-size: 16px; background: #fff;
+    padding-right: 12px; color: #000;
+    font-weight: bold;
+  }
+
+  table.bulletin-table {
+    width: 100%; border-collapse: collapse;
+    border: 2px solid #000; margin-top: 6px;
+    table-layout: fixed; background: #fff;
+  }
+  table.bulletin-table col.col-matiere     { width: 22%; }
+  table.bulletin-table col.col-note-fr     { width: 11%; }
+  table.bulletin-table col.col-note-ar     { width: 11%; }
+  table.bulletin-table col.col-matiere-ar  { width: 22%; }
+  table.bulletin-table col.col-unite-fr    { width: 17%; }
+  table.bulletin-table col.col-unite-ar    { width: 17%; }
+
+  table.bulletin-table th {
+    border: 1px solid #000; padding: 6px 4px; font-size: 12.5px;
+    background: #fff; color: #000; text-align: center; font-weight: bold;
+    word-wrap: break-word; overflow-wrap: break-word;
+  }
+  table.bulletin-table th.th-ar { font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial; font-size: 14px; font-weight: bold; }
+  table.bulletin-table td {
+    border: 1px solid #000; padding: 5px 5px; font-size: 12.5px;
+    text-align: center; vertical-align: middle;
+    background: #fff; color: #000;
+    font-weight: bold;
+    word-wrap: break-word; overflow-wrap: break-word;
+  }
+  table.bulletin-table td.nom-fr { text-align: left; padding-left: 10px; color: #000; font-weight: bold; }
+  table.bulletin-table td.nom-ar {
+    text-align: right; padding-right: 10px; direction: rtl;
+    font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial; font-size: 14px; color: #000;
+    font-weight: bold;
+  }
+  table.bulletin-table td.cell-unite {
+    background: #fff; color: #000;
+    font-weight: bold; text-align: center; font-size: 12.5px;
+  }
+  table.bulletin-table td.cell-unite-ar {
+    background: #fff; color: #000;
+    font-weight: bold; direction: rtl;
+    font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial; font-size: 13px; text-align: center;
+  }
+
+  .appreciation-box {
+    margin-top: 12px; padding: 12px 20px;
+    background: #fff; border: 2px solid #000;
+    border-radius: 8px; text-align: center;
+  }
+  .appreciation-box .label {
+    font-size: 12px; color: #000; margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;
+  }
+
+  .signature {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end;
+    page-break-inside: avoid;
+  }
+  .signature .sign-dir {
+    text-align: center; font-size: 14px; color: #000;
+    font-weight: bold; padding: 8px 20px;
+    font-family: 'Amiri', 'Cairo', 'Traditional Arabic', Arial;
+  }
+  .signature + .signature { display: none !important; }
+
+  #loading {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 9999;
+    justify-content: center; align-items: center;
+  }
+  #loading .box {
+    background: #fff; padding: 25px 40px; border-radius: 10px;
+    font-size: 16px; font-weight: bold; color: #1a3a6b; text-align: center;
+  }
+  #loading .box .progress { margin-top: 10px; font-size: 14px; color: #666; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .container { box-shadow: none; padding: 0; max-width: 100%; }
+    .no-print { display: none !important; }
+    #bulletin { display: block !important; margin: 0; padding: 20px; }
+    table.bulletin-table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="box">
+    ⏳ Génération en cours...
+    <div class="progress" id="progressText">0 / 0</div>
+  </div>
+</div>
+
+<div class="container">
+  <h1 class="no-print">📚 Bulletin Primaire - بيان النقط</h1>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" onclick="switchTab('tab-simple', this)">👤 Élève unique</button>
+    <button class="tab-btn" onclick="switchTab('tab-masse', this)">👥 Génération en masse</button>
+    <button class="tab-btn" onclick="switchTab('tab-aide', this)">📖 Aide / Format Excel</button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="tab-simple" class="tab-content active no-print">
+    <h3 class="section-title">👤 Informations de l'élève / معلومات التلميذ</h3>
+    <div class="form-grid">
+      <div><label>Nom de l'élève (FR)</label><input type="text" id="nomFr" placeholder="Ahmed Benali"></div>
+      <div><label>اسم التلميذ (AR)</label><input type="text" id="nomAr" placeholder="أحمد بنعلي" dir="rtl"></div>
+      <div><label>Classe (FR)</label><input type="text" id="classe" placeholder="4ème année A"></div>
+      <div><label>القسم (AR)</label><input type="text" id="classeAr" placeholder="القسم بالعربية" dir="rtl"></div>
+      <div>
+        <label>Semestre / الأسدوس</label>
+        <select id="semestre">
+          <option value="1er Semestre / الأسدوس الأول">1er Semestre / الأسدوس الأول</option>
+          <option value="2ème Semestre / الأسدوس الثاني">2ème Semestre / الأسدوس الثاني</option>
+        </select>
+      </div>
+      <div><label>Année scolaire / السنة الدراسية</label><input type="text" id="annee" placeholder="2025-2026"></div>
+      <div><label>Établissement (FR)</label><input type="text" id="etab" placeholder="Nom de l'école"></div>
+      <div><label>المؤسسة (AR)</label><input type="text" id="etabAr" placeholder="اسم المؤسسة" dir="rtl"></div>
+      <div><label>Nom du professeur / الأستاذ</label><input type="text" id="prof" placeholder="Nom du professeur"></div>
+    </div>
+
+    <h3 class="section-title">🏫 Logo de l'école / شعار المدرسة</h3>
+    <div class="logo-upload-box" style="display:flex; align-items:center; gap:15px; padding:10px 15px; background:#f5f7fa; border-radius:8px; margin-bottom:15px;">
+      <label for="logoInput" style="font-weight:600;color:#1a3a6b;font-size:14px;">Choisir un logo :</label>
+      <input type="file" id="logoInput" accept="image/*" onchange="chargerLogo(event)" style="padding:6px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px;">
+      <div class="logo-preview" id="logoPreview" style="width:60px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-size:11px;color:#999;">Aucun logo</div>
+      <button class="btn-red btn-small" onclick="supprimerLogo()">✖ Supprimer</button>
+    </div>
+
+    <h3 class="section-title">📖 Saisie des notes / إدخال النقط</h3>
+
+    <table class="saisie" style="width:100%;border-collapse:collapse;margin-top:10px;border:2px solid #000;background:#fff;table-layout:fixed;">
+      <thead>
+        <tr>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;">Unité / الوحدة</th>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;">Matière (FR)</th>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;">Note /10</th>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;">النقطة \ 10</th>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">المادة</th>
+          <th style="background:#1a3a6b;color:#fff;padding:8px 5px;font-size:13px;border:1px solid #000;text-align:center;font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">الوحدة</th>
+        </tr>
+      </thead>
+      <tbody id="corpsSaisie"></tbody>
+    </table>
+
+    <div class="actions">
+      <button class="btn-add-unite" onclick="ajouterUnite()">➕ Ajouter une unité</button>
+      <button class="btn-green" onclick="genererBulletin()">✅ Générer le bulletin</button>
+      <button class="btn-orange" onclick="telechargerPDF()">📥 Télécharger en PDF</button>
+      <button class="btn-red" onclick="window.print()">🖨️ Imprimer</button>
+    </div>
+  </div>
+
+  <!-- TAB 2 : MASSE -->
+  <div id="tab-masse" class="tab-content no-print">
+    <h3 class="section-title">👥 Génération en masse</h3>
+
+    <div class="import-box">
+      <h4>📥 Importer un fichier Excel (.xlsx) ou CSV</h4>
+      <div class="info">
+        Le fichier doit contenir les colonnes :<br>
+        <code>nom_fr</code>, <code>nom_ar</code>, <code>classe</code>, <code>classe_ar</code>,
+        <code>matiere_fr</code>, <code>matiere_ar</code>, <code>unite_fr</code>, <code>unite_ar</code>,
+        <code>note_fr</code>, <code>note_ar</code>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="importerFichier(event)" style="padding:8px;border:1px solid #ccc;border-radius:6px;background:#fff;">
+      <button class="btn-blue" onclick="telechargerModele()">📄 Télécharger le modèle Excel</button>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:15px;">
+      <button class="btn-green" onclick="genererTousBulletins()">✅ Générer tous les bulletins</button>
+      <button class="btn-orange" onclick="telechargerTousPDF()">📥 Télécharger les PDF sélectionnés</button>
+      <button class="btn-blue" onclick="telechargerPDFUnique()">📄 PDF unique (tous les élèves)</button>
+      <button class="btn-red" onclick="viderEleves()">🗑️ Vider la liste</button>
+      <span id="compteurEleves" style="margin-left:auto;font-weight:bold;color:#1a3a6b;">0 élève(s)</span>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+      <button class="btn-purple btn-small" onclick="toutSelectionner()">✅ Tout sélectionner</button>
+      <button class="btn-red btn-small" onclick="toutDesSelectionner()">❌ Tout désélectionner</button>
+      <span id="compteurSelection" style="font-weight:bold;color:#14803c;">0 sélectionné(s)</span>
+    </div>
+
+    <div class="eleves-list" id="elevesList">
+      <p style="text-align:center;color:#999;padding:20px;">Aucun élève importé</p>
+    </div>
+  </div>
+
+  <!-- TAB 3 : AIDE -->
+  <div id="tab-aide" class="tab-content no-print">
+    <h3 class="section-title">📖 Format du fichier Excel / CSV</h3>
+    <p style="line-height:1.8;font-size:14px;">
+      Le fichier doit avoir <b>une ligne par matière par élève</b>. Voici un exemple :
+    </p>
+    <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;">
+      <thead>
+        <tr style="background:#1a3a6b;color:#fff;">
+          <th style="border:1px solid #000;padding:6px;">nom_fr</th>
+          <th style="border:1px solid #000;padding:6px;">nom_ar</th>
+          <th style="border:1px solid #000;padding:6px;">classe</th>
+          <th style="border:1px solid #000;padding:6px;">classe_ar</th>
+          <th style="border:1px solid #000;padding:6px;">matiere_fr</th>
+          <th style="border:1px solid #000;padding:6px;">matiere_ar</th>
+          <th style="border:1px solid #000;padding:6px;">unite_fr</th>
+          <th style="border:1px solid #000;padding:6px;">unite_ar</th>
+          <th style="border:1px solid #000;padding:6px;">note_fr</th>
+          <th style="border:1px solid #000;padding:6px;">note_ar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border:1px solid #ccc;padding:6px;">Ahmed Benali</td>
+          <td style="border:1px solid #ccc;padding:6px;">أحمد بنعلي</td>
+          <td style="border:1px solid #ccc;padding:6px;">4ème A</td>
+          <td style="border:1px solid #ccc;padding:6px;">الرابع أ</td>
+          <td style="border:1px solid #ccc;padding:6px;">Expression orale</td>
+          <td style="border:1px solid #ccc;padding:6px;">القرآن الكريم</td>
+          <td style="border:1px solid #ccc;padding:6px;">Langue française</td>
+          <td style="border:1px solid #ccc;padding:6px;">اللغة العربية</td>
+          <td style="border:1px solid #ccc;padding:6px;">8</td>
+          <td style="border:1px solid #ccc;padding:6px;">10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="bulletin"></div>
+</div>
+
+<script>
+let logoDataURL = "";
+let elevesData = {};
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  btn.classList.add("active");
+}
+
+function chargerLogo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    logoDataURL = e.target.result;
+    document.getElementById("logoPreview").innerHTML = `<img src="${logoDataURL}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+  };
+  reader.readAsDataURL(file);
+}
+function supprimerLogo() {
+  logoDataURL = "";
+  document.getElementById("logoInput").value = "";
+  document.getElementById("logoPreview").innerHTML = "Aucun logo";
+}
+
+const groupeLangueFr = {
+  uniteFr: "Langue française",
+  uniteAr: "اللغة العربية",
+  matieres: [
+    { fr: "Expression orale",        ar: "القرآن الكريم" },
+    { fr: "Poésie",                  ar: "التربية الإسلامية" },
+    { fr: "Lecture / Compréhension", ar: "التواصل الشفهي" },
+    { fr: "Vocabulaire",             ar: "القراءة" },
+    { fr: "Projet de classe",        ar: "الشكل" },
+    { fr: "Expression écrite",       ar: "فهم المقروء" },
+    { fr: "Grammaire",               ar: "الصرف والتحويل" },
+    { fr: "Conjugaison",             ar: "التراكيب" },
+    { fr: "Orthographe / Dictée",    ar: "الملاء" },
+    { fr: "",                        ar: "الإنشاء" }
+  ]
+};
+
+const groupeAutres = {
+  lignes: [
+    { uniteFr: "Langue anglaise",    matiereFr: "Moyenne d'unité", matiereAr: "معدل الوحدة",       uniteAr: "مشروع الوحدة" },
+    { uniteFr: "Eveil scientifique", matiereFr: "Moyenne d'unité", matiereAr: "معدل الوحدة",       uniteAr: "النشاط العلمي" },
+    { uniteFr: "Education physique", matiereFr: "Moyenne d'unité", matiereAr: "معدل الوحدة",       uniteAr: "التربية التشكيلية" },
+    { uniteFr: "—",                  matiereFr: "",                matiereAr: "معدل الوحدة",       uniteAr: "الرياضيات" },
+    { uniteFr: "—",                  matiereFr: "",                matiereAr: "التاريخ",           uniteAr: "الاجتماعيات" },
+    { uniteFr: "",                   matiereFr: "",                matiereAr: "الجغرافيا",         uniteAr: "" },
+    { uniteFr: "",                   matiereFr: "",                matiereAr: "التربية المدنية",   uniteAr: "" }
+  ]
+};
+
+function ajouterGroupeLangue(g) {
+  const tbody = document.getElementById("corpsSaisie");
+  const nb = g.matieres.length;
+  g.matieres.forEach((m, idx) => {
+    const tr = document.createElement("tr");
+    tr.className = "ligne-matiere";
+    const valUFr = (idx === 0) ? g.uniteFr : "";
+    const valUAr = (idx === 0) ? g.uniteAr : "";
+    tr.innerHTML = `
+      <td style="border:1px solid #000;padding:3px;text-align:center;vertical-align:middle;background:#eaf0f8;font-weight:bold;">
+        <input type="text" class="u-fr gras" value="${valUFr}" style="width:100%;border:none;padding:5px;font-size:13px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;">
+        ${idx === 0 ? `<br><button class="btn-red btn-small" onclick="supprimerBloc(this)">✖</button>` : ""}
+      </td>
+      <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-fr" value="${m.fr}" style="width:100%;border:none;padding:5px;font-size:13px;text-align:left;padding-left:8px;background:transparent;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="number" class="n-fr note" min="0" max="10" step="0.25" placeholder="—" style="width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="number" class="n-ar note" min="0" max="10" step="0.25" placeholder="—" dir="rtl" style="width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#14803c;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-ar ar" value="${m.ar}" dir="rtl" style="width:100%;border:none;padding:5px;font-size:16px;text-align:right;padding-right:8px;background:transparent;font-family:'Amiri','Cairo','Traditional Arabic',Arial;"></td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;vertical-align:middle;background:#eaf0f8;font-weight:bold;">
+        <input type="text" class="u-ar ar gras" value="${valUAr}" dir="rtl" style="width:100%;border:none;padding:5px;font-size:17px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;font-family:'Amiri','Cairo','Traditional Arabic',Arial;">
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function ajouterGroupeAutres(g) {
+  const tbody = document.getElementById("corpsSaisie");
+  g.lignes.forEach(l => {
+    const tr = document.createElement("tr");
+    tr.className = "ligne-matiere";
+    tr.innerHTML = `
+      <td style="border:1px solid #000;padding:3px;background:#eaf0f8;"><input type="text" class="u-fr gras" value="${l.uniteFr || ''}" style="width:100%;border:none;padding:5px;font-size:13px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-fr" value="${l.matiereFr || ''}" style="width:100%;border:none;padding:5px;font-size:13px;text-align:left;padding-left:8px;background:transparent;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="number" class="n-fr note" min="0" max="10" step="0.25" placeholder="—" style="width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="number" class="n-ar note" min="0" max="10" step="0.25" placeholder="—" dir="rtl" style="width:100%;border:none;padding:5px;font-size:14px;text-align:center;background:transparent;font-weight:bold;color:#14803c;"></td>
+      <td style="border:1px solid #000;padding:3px;"><input type="text" class="m-ar ar" value="${l.matiereAr || ''}" dir="rtl" style="width:100%;border:none;padding:5px;font-size:16px;text-align:right;padding-right:8px;background:transparent;font-family:'Amiri','Cairo','Traditional Arabic',Arial;"></td>
+      <td style="border:1px solid #000;padding:3px;background:#eaf0f8;"><input type="text" class="u-ar ar gras" value="${l.uniteAr || ''}" dir="rtl" style="width:100%;border:none;padding:5px;font-size:17px;text-align:center;background:transparent;font-weight:bold;color:#1a3a6b;font-family:'Amiri','Cairo','Traditional Arabic',Arial;"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function ajouterUnite() {
+  ajouterGroupeLangue({
+    uniteFr: "Nouvelle unité",
+    uniteAr: "وحدة جديدة",
+    matieres: [{ fr: "", ar: "" }, { fr: "", ar: "" }]
+  });
+}
+
+function supprimerBloc(btn) {
+  if (!confirm("Supprimer ce bloc entier ?")) return;
+  const trMatiere = btn.closest("tr");
+  let next = trMatiere;
+  let first = true;
+  while (next) {
+    if (first) first = false;
+    else {
+      const inp = next.querySelector(".u-fr");
+      if (inp && inp.value.trim() !== "") break;
+    }
+    const toDelete = next;
+    next = next.nextElementSibling;
+    toDelete.remove();
+  }
+}
+
+function genererBulletin() {
+  const nomFr = document.getElementById("nomFr").value || "—";
+  const nomAr = document.getElementById("nomAr").value || "—";
+  const classe = document.getElementById("classe").value || "—";
+  const classeAr = document.getElementById("classeAr").value || "—";
+  const sem = document.getElementById("semestre").value || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
+
+  const tbody = document.getElementById("corpsSaisie");
+  const lignes = Array.from(tbody.children);
+
+  const infos = lignes.map(tr => {
+    if (!tr.classList.contains("ligne-matiere")) return null;
+    return {
+      matFR: tr.querySelector(".m-fr")?.value.trim() || "",
+      matAR: tr.querySelector(".m-ar")?.value.trim() || "",
+      nf: tr.querySelector(".n-fr")?.value || "",
+      na: tr.querySelector(".n-ar")?.value || "",
+      uFr: tr.querySelector(".u-fr")?.value.trim() || "",
+      uAr: tr.querySelector(".u-ar")?.value.trim() || ""
+    };
+  }).filter(Boolean);
+
+  const eleveUnique = { nomFr, nomAr, classe, classeAr, matieres: infos };
+  document.getElementById("bulletin").innerHTML = construireBulletinHTML(eleveUnique, sem, annee, etab, etabAr);
+  document.getElementById("bulletin").style.display = "block";
+  document.getElementById("bulletin").scrollIntoView({ behavior: "smooth" });
+}
+
+function telechargerPDF() {
+  const bulletin = document.getElementById("bulletin");
+  if (bulletin.style.display === "none" || !bulletin.innerHTML.trim()) {
+    alert("⚠️ Khass t'generi l'bulletin 9bel");
+    return;
+  }
+  document.getElementById("loading").style.display = "flex";
+  document.getElementById("progressText").textContent = "Génération...";
+  const nom = (document.getElementById("nomFr").value || "eleve").replace(/\s+/g, "_");
+  const sem = (document.getElementById("semestre").value || "semestre").replace(/\s+/g, "_");
+
+  html2canvas(bulletin, { scale: 3, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: 1000 })
+    .then(canvas => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = 210, pageH = 297, marginX = 8, marginY = 8;
+      const maxW = pageW - 2 * marginX, maxH = pageH - 2 * marginY;
+      const imgW = canvas.width, imgH = canvas.height;
+      const ratio = imgW / imgH;
+      let renderW = maxW, renderH = renderW / ratio;
+
+      if (renderH > maxH) {
+        let position = marginY, heightLeft = renderH;
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', marginX, position, renderW, renderH);
+        heightLeft -= maxH;
+        while (heightLeft > 0) {
+          position = marginY - (renderH - heightLeft);
+          doc.addPage();
+          doc.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', marginX, position, renderW, renderH);
+          heightLeft -= maxH;
+        }
+      } else {
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', marginX, marginY, renderW, renderH);
+      }
+      doc.save(`Bulletin_${nom}_${sem}.pdf`);
+      document.getElementById("loading").style.display = "none";
+    }).catch(err => {
+      console.error(err);
+      document.getElementById("loading").style.display = "none";
+      alert("❌ Mochkil f génération.");
+    });
+}
+
+function importerFichier(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    elevesData = {};
+
+    rows.forEach(row => {
+      const nomFr = String(row.nom_fr || "").trim();
+      const nomAr = String(row.nom_ar || "").trim();
+      const classe = String(row.classe || "").trim();
+      const classeAr = String(row.classe_ar || "").trim();
+      if (!nomFr && !nomAr) return;
+      const key = nomFr + "|" + nomAr + "|" + classe;
+      if (!elevesData[key]) {
+        elevesData[key] = { 
+          nomFr: nomFr || "—", 
+          nomAr: nomAr || "—", 
+          classe: classe || "—", 
+          classeAr: classeAr || "—", 
+          matieres: [] 
+        };
+      }
+      elevesData[key].matieres.push({
+        matFR: String(row.matiere_fr || "").trim(),
+        matAR: String(row.matiere_ar || "").trim(),
+        uFr: String(row.unite_fr || "").trim(),
+        uAr: String(row.unite_ar || "").trim(),
+        nf: row.note_fr !== "" ? String(row.note_fr) : "",
+        na: row.note_ar !== "" ? String(row.note_ar) : ""
+      });
+    });
+
+    afficherListeEleves();
+    document.getElementById("compteurEleves").textContent = Object.keys(elevesData).length + " élève(s)";
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* =========================================================
+   AFFICHER LA LISTE DES ÉLÈVES (m3a checkbox)
+   ========================================================= */
+function afficherListeEleves() {
+  const conteneur = document.getElementById("elevesList");
+  const keys = Object.keys(elevesData);
+  if (keys.length === 0) {
+    conteneur.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Aucun élève importé</p>';
+    return;
+  }
+  let html = `<table class="eleves-table"><thead><tr>
+    <th style="width:5%;">✓</th>
+    <th>#</th><th>Nom (FR)</th><th>الاسم (AR)</th><th>Classe</th><th>القسم</th><th>Nb. matières</th><th>Action</th>
+  </tr></thead><tbody>`;
+  keys.forEach((key, idx) => {
+    const e = elevesData[key];
+    html += `<tr>
+      <td><input type="checkbox" class="check-eleve" data-key="${key.replace(/"/g, '&quot;')}" checked onchange="updateCompteurSelection()"></td>
+      <td>${idx + 1}</td>
+      <td>${e.nomFr}</td>
+      <td style="font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">${e.nomAr}</td>
+      <td>${e.classe}</td>
+      <td style="font-family:'Amiri','Cairo','Traditional Arabic',Arial;font-size:16px;">${e.classeAr}</td>
+      <td>${e.matieres.length}</td>
+      <td><button class="btn-blue btn-small" onclick="voirBulletin('${key.replace(/'/g, "\\'")}')">👁️ Voir</button></td>
+    </tr>`;
+  });
+  html += "</tbody></table>";
+  conteneur.innerHTML = html;
+  updateCompteurSelection();
+}
+
+/* =========================================================
+   COMPTEUR SÉLECTION + TOUT SÉLECTIONNER
+   ========================================================= */
+function updateCompteurSelection() {
+  const nb = document.querySelectorAll(".check-eleve:checked").length;
+  const total = document.querySelectorAll(".check-eleve").length;
+  const el = document.getElementById("compteurSelection");
+  if (el) el.textContent = `${nb} / ${total} sélectionné(s)`;
+}
+
+function toutSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = true);
+  updateCompteurSelection();
+}
+function toutDesSelectionner() {
+  document.querySelectorAll(".check-eleve").forEach(cb => cb.checked = false);
+  updateCompteurSelection();
+}
+
+function voirBulletin(key) {
+  const e = elevesData[key];
+  if (!e) return;
+  const sem = document.getElementById("semestre").value || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
+  document.getElementById("bulletin").innerHTML = construireBulletinHTML(e, sem, annee, etab, etabAr);
+  document.getElementById("bulletin").style.display = "block";
+  document.getElementById("bulletin").scrollIntoView({ behavior: "smooth" });
+}
+
+function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
+  let htmlLignes = "";
+  const infos = eleve.matieres;
+
+  const cellulesFr = {};
+  let i = 0;
+  while (i < infos.length) {
+    const u = infos[i].uFr;
+    if (u) {
+      let count = 1, j = i + 1;
+      while (j < infos.length && !infos[j].uFr) { count++; j++; }
+      cellulesFr[i] = count; i = j;
+    } else { i++; }
+  }
+
+  const cellulesAr = {};
+  i = 0;
+  while (i < infos.length) {
+    const u = infos[i].uAr;
+    if (u) {
+      let count = 1, j = i + 1;
+      while (j < infos.length && !infos[j].uAr) { count++; j++; }
+      cellulesAr[i] = count; i = j;
+    } else { i++; }
+  }
+
+  infos.forEach((info, idx) => {
+    const nf = parseFloat(info.nf), na = parseFloat(info.na);
+    const nfAff = !isNaN(nf) ? nf.toFixed(2) : "—";
+    const naAff = !isNaN(na) ? na.toFixed(2) : "—";
+
+    let cellFr = "";
+    if (info.uFr) cellFr = `<td class="cell-unite" rowspan="${cellulesFr[idx]}">${info.uFr}</td>`;
+
+    let cellAr = "";
+    if (info.uAr) cellAr = `<td class="cell-unite-ar" rowspan="${cellulesAr[idx]}">${info.uAr}</td>`;
+
+    htmlLignes += `<tr>
+      ${cellFr}
+      <td class="nom-fr">${info.matFR || "—"}</td>
+      <td>${nfAff}</td>
+      <td>${naAff}</td>
+      <td class="nom-ar">${info.matAR || "—"}</td>
+      ${cellAr}
+    </tr>`;
+  });
+
+  const moyGenFR = (() => {
+    let s = 0, c = 0;
+    infos.forEach(i => { const n = parseFloat(i.nf); if (!isNaN(n)) { s += n; c++; } });
+    return c > 0 ? s / c : 0;
+  })();
+
+  const moyGenAR = (() => {
+    let s = 0, c = 0;
+    infos.forEach(i => { const n = parseFloat(i.na); if (!isNaN(n)) { s += n; c++; } });
+    return c > 0 ? s / c : 0;
+  })();
+
+  let mentionFr = "";
+  if (moyGenFR >= 9)       mentionFr = "Excellent";
+  else if (moyGenFR >= 8)  mentionFr = "Très bien";
+  else if (moyGenFR >= 7)  mentionFr = "Bien";
+  else if (moyGenFR >= 5)  mentionFr = "Passable";
+  else                     mentionFr = "Insuffisant";
+
+  let mentionAr = "";
+  if (moyGenAR >= 9)       mentionAr = "ممتاز";
+  else if (moyGenAR >= 8)  mentionAr = "جيد جداً";
+  else if (moyGenAR >= 7)  mentionAr = "جيد";
+  else if (moyGenAR >= 5)  mentionAr = "مقبول";
+  else                     mentionAr = "ضعيف";
+
+  const logoHTML = logoDataURL
+    ? `<img src="${logoDataURL}" alt="Logo école">`
+    : `<div class="logo-placeholder">Logo<br>شعار</div>`;
+
+  return `
+    <div class="bulletin-header">
+      <div class="fr"><strong>${etab}</strong><br>Année scolaire : ${annee}</div>
+      <div class="logo-zone">${logoHTML}</div>
+      <div class="ar"><strong>${etabAr}</strong><br>السنة الدراسية: ${annee}</div>
+    </div>
+    <div class="bulletin-title">
+      BULLETIN SCOLAIRE — <span style="font-family:'Amiri','Cairo','Traditional Arabic', Arial; font-size:22px;">بيان النقط</span>
+      <div style="font-size:12px; margin-top:2px;">${sem}</div>
+    </div>
+    <div class="info-eleve">
+      <div><strong>Nom :</strong> ${eleve.nomFr}</div>
+      <div class="info-ar"><strong>الاسم:</strong> ${eleve.nomAr}</div>
+      <div><strong>Classe :</strong> ${eleve.classe}</div>
+      <div class="info-ar"><strong>القسم:</strong> ${eleve.classeAr}</div>
+    </div>
+    <table class="bulletin-table">
+      <colgroup>
+        <col class="col-unite-fr">
+        <col class="col-matiere">
+        <col class="col-note-fr">
+        <col class="col-note-ar">
+        <col class="col-matiere-ar">
+        <col class="col-unite-ar">
+      </colgroup>
+      <thead><tr>
+        <th>Unité</th><th>Matière</th><th>Note /10</th><th>النقطة \\ 10</th>
+        <th class="th-ar">المادة</th><th class="th-ar">الوحدة</th>
+      </tr></thead>
+      <tbody>${htmlLignes}</tbody>
+    </table>
+    
+    <div class="appreciation-box">
+      <div class="label">Appréciations Générales</div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:10px;">
+        <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;">
+          <div style="font-size:22px; font-weight:bold; color:#1a3a6b; margin-top:5px;">${mentionFr}</div>
+        </div>
+        
+        <div style="text-align:center; border:2px solid #000; padding:12px; border-radius:6px; background:#f9fafc;" dir="rtl">
+          <div style="font-size:22px; font-weight:bold; color:#14803c; margin-top:5px; font-family:'Amiri','Cairo','Traditional Arabic',Arial;">${mentionAr}</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="signature">
+      <div class="sign-dir">Signature de la direction<br>توقيع الإدارة</div>
+    </div>
+  `;
+}
+
+function genererTousBulletins() {
+  const keys = Object.keys(elevesData);
+  if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
+  const sem = document.getElementById("semestre").value || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
+  let html = "";
+  keys.forEach(key => {
+    html += `<div style="page-break-after: always; margin-bottom: 30px;">`;
+    html += construireBulletinHTML(elevesData[key], sem, annee, etab, etabAr);
+    html += `</div>`;
+  });
+  document.getElementById("bulletin").innerHTML = html;
+  document.getElementById("bulletin").style.display = "block";
+  document.getElementById("bulletin").scrollIntoView({ behavior: "smooth" });
+}
+
+/* =========================================================
+   TÉLÉCHARGER LES PDF SÉLECTIONNÉS
+   ========================================================= */
+async function telechargerTousPDF() {
+  // 🔑 Khod ghir l'élèves li checkbox dialhom actif
+  const keys = [];
+  document.querySelectorAll(".check-eleve:checked").forEach(cb => {
+    keys.push(cb.getAttribute("data-key"));
+  });
+
+  if (keys.length === 0) {
+    alert("⚠️ Khass tkhtar 3la l'a9al élève wa7ed");
+    return;
+  }
+
+  const sem = document.getElementById("semestre").value || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
+
+  document.getElementById("loading").style.display = "flex";
+  const { jsPDF } = window.jspdf;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const e = elevesData[key];
+    document.getElementById("progressText").textContent = `${i + 1} / ${keys.length} — ${e.nomFr}`;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "fixed"; tempDiv.style.left = "-9999px"; tempDiv.style.top = "0";
+    tempDiv.style.width = "900px"; tempDiv.style.background = "#fff"; tempDiv.style.padding = "20px";
+    tempDiv.innerHTML = construireBulletinHTML(e, sem, annee, etab, etabAr);
+    document.body.appendChild(tempDiv);
+
+    try {
+      const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = 210, pageH = 297, marginX = 8, marginY = 8;
+      const maxW = pageW - 2 * marginX, maxH = pageH - 2 * marginY;
+      const imgW = canvas.width, imgH = canvas.height;
+      const ratio = imgW / imgH;
+      let renderW = maxW, renderH = renderW / ratio;
+
+      if (renderH > maxH) {
+        let position = marginY, heightLeft = renderH;
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, position, renderW, renderH);
+        heightLeft -= maxH;
+        while (heightLeft > 0) {
+          position = marginY - (renderH - heightLeft);
+          doc.addPage();
+          doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, position, renderW, renderH);
+          heightLeft -= maxH;
+        }
+      } else {
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, marginY, renderW, renderH);
+      }
+      const nomSafe = e.nomFr.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, "_");
+      doc.save(`Bulletin_${nomSafe}.pdf`);
+    } catch (err) { console.error("Erreur pour", e.nomFr, err); }
+    tempDiv.remove();
+    await new Promise(r => setTimeout(r, 800));
+  }
+  document.getElementById("loading").style.display = "none";
+  alert(`✅ ${keys.length} PDF générés !`);
+}
+
+async function telechargerPDFUnique() {
+  const keys = Object.keys(elevesData);
+  if (keys.length === 0) { alert("⚠️ Khass t'importi fichier 9bel"); return; }
+  const sem = document.getElementById("semestre").value || "—";
+  const annee = document.getElementById("annee").value || "—";
+  const etab = document.getElementById("etab").value || "—";
+  const etabAr = document.getElementById("etabAr").value || "—";
+
+  document.getElementById("loading").style.display = "flex";
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const pageW = 210, pageH = 297, marginX = 8, marginY = 8;
+  const maxW = pageW - 2 * marginX, maxH = pageH - 2 * marginY;
+
+  let premierePage = true;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const e = elevesData[key];
+    document.getElementById("progressText").textContent = `${i + 1} / ${keys.length} — ${e.nomFr}`;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "fixed"; tempDiv.style.left = "-9999px"; tempDiv.style.top = "0";
+    tempDiv.style.width = "900px"; tempDiv.style.background = "#fff"; tempDiv.style.padding = "20px";
+    tempDiv.innerHTML = construireBulletinHTML(e, sem, annee, etab, etabAr);
+    document.body.appendChild(tempDiv);
+
+    try {
+      const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      const imgW = canvas.width, imgH = canvas.height;
+      const ratio = imgW / imgH;
+      let renderW = maxW, renderH = renderW / ratio;
+
+      if (!premierePage) doc.addPage();
+      premierePage = false;
+
+      if (renderH > maxH) {
+        let position = marginY, heightLeft = renderH;
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, position, renderW, renderH);
+        heightLeft -= maxH;
+        while (heightLeft > 0) {
+          position = marginY - (renderH - heightLeft);
+          doc.addPage();
+          doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, position, renderW, renderH);
+          heightLeft -= maxH;
+        }
+      } else {
+        doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginX, marginY, renderW, renderH);
+      }
+    } catch (err) { console.error("Erreur pour", e.nomFr, err); }
+    tempDiv.remove();
+    await new Promise(r => setTimeout(r, 200));
+  }
+
+  const semSafe = sem.replace(/\s+/g, "_");
+  doc.save(`Bulletins_Tous_Eleves_${semSafe}.pdf`);
+
+  document.getElementById("loading").style.display = "none";
+  alert(`✅ PDF unique généré avec ${keys.length} élève(s) !`);
+}
+
+function viderEleves() {
+  if (!confirm("Vider la liste des élèves ?")) return;
+  elevesData = {};
+  document.getElementById("elevesList").innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Aucun élève importé</p>';
+  document.getElementById("compteurEleves").textContent = "0 élève(s)";
+  document.getElementById("fileInput").value = "";
+  document.getElementById("bulletin").style.display = "none";
+}
+
+function telechargerModele() {
+  const modele = [
+    { nom_fr: "Ahmed Benali", nom_ar: "أحمد بنعلي", classe: "4ème A", classe_ar: "الرابع أ", matiere_fr: "Expression orale", matiere_ar: "القرآن الكريم", unite_fr: "Langue française", unite_ar: "اللغة العربية", note_fr: 8, note_ar: 10 },
+    { nom_fr: "Ahmed Benali", nom_ar: "أحمد بنعلي", classe: "4ème A", classe_ar: "الرابع أ", matiere_fr: "Poésie", matiere_ar: "التربية الإسلامية", unite_fr: "", unite_ar: "", note_fr: 8, note_ar: 10 },
+    { nom_fr: "Ahmed Benali", nom_ar: "أحمد بنعلي", classe: "4ème A", classe_ar: "الرابع أ", matiere_fr: "Lecture", matiere_ar: "التواصل الشفهي", unite_fr: "", unite_ar: "", note_fr: 8, note_ar: 9 },
+    { nom_fr: "Sara Alami", nom_ar: "سارة علمي", classe: "4ème A", classe_ar: "الرابع أ", matiere_fr: "Expression orale", matiere_ar: "القرآن الكريم", unite_fr: "Langue française", unite_ar: "اللغة العربية", note_fr: 9, note_ar: 9.5 },
+    { nom_fr: "Sara Alami", nom_ar: "سارة علمي", classe: "4ème A", classe_ar: "الرابع أ", matiere_fr: "Poésie", matiere_ar: "التربية الإسلامية", unite_fr: "", unite_ar: "", note_fr: 9.5, note_ar: 10 }
+  ];
+  const ws = XLSX.utils.json_to_sheet(modele);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Bulletins");
+  XLSX.writeFile(wb, "Modele_Bulletins.xlsx");
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  ajouterGroupeLangue(groupeLangueFr);
+  ajouterGroupeAutres(groupeAutres);
+});
+</script>
+
+</body>
+</html>
