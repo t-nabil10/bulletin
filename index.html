@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulletins Scolaires - بيان النقط</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1a3a6b 0%, #2c5aa0 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 20px;
+    padding: 50px 40px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  h1 {
+    color: #1a3a6b;
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  h1 .ar {
+    display: block;
+    font-size: 26px;
+    margin-top: 5px;
+    font-family: 'Amiri', 'Cairo', Arial;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 40px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .card {
+    background: #f5f7fa;
+    border: 2px solid #e0e5ec;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+    cursor: pointer;
+    display: block;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(26,58,107,0.2);
+    border-color: #1a3a6b;
+    background: #eaf0f8;
+  }
+  .card .icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+  }
+  .card h2 {
+    color: #1a3a6b;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .card .ar-title {
+    color: #1a3a6b;
+    font-size: 18px;
+    font-family: 'Amiri', 'Cairo', Arial;
+    margin-bottom: 12px;
+  }
+  .card p {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .footer {
+    margin-top: 40px;
+    color: #999;
+    font-size: 12px;
+  }
+  @media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+    h1 { font-size: 24px; }
+    .container { padding: 30px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>
+    📚 Bulletins Scolaires
+    <span class="ar">بيانات النقط</span>
+  </h1>
+  <p class="subtitle">Choisissez le niveau scolaire / اختر المستوى الدراسي</p>
+
+  <div class="cards">
+    <a href="college/" class="card">
+      <div class="icon">🎓</div>
+      <h2>Collège</h2>
+      <div class="ar-title">التعليم الإعدادي</div>
+      <p>Générer les bulletins pour les élèves du collège</p>
+    </a>
+
+    <a href="primaire/" class="card">
+      <div class="icon">📖</div>
+      <h2>Primaire</h2>
+      <div class="ar-title">التعليم الابتدائي</div>
+      <p>Générer les bulletins pour les élèves du primaire</p>
+    </a>
+  </div>
+
+  <div class="footer">
+    © 2025 — Tous droits réservés / جميع الحقوق محفوظة
+  </div>
+</div>
+
+</body>
+</html>
