@@ -250,6 +250,15 @@
       <button class="btn-red btn-small" onclick="supprimerLogo()">✖ Supprimer</button>
     </div>
 
+    <!-- 🔑 ZONE CACHET (jdid) -->
+    <h3 class="section-title">📸 Cachet / الطابع</h3>
+    <div style="display:flex; align-items:center; gap:15px; padding:10px 15px; background:#f5f7fa; border-radius:8px; margin-bottom:15px;">
+      <label for="cachetInput" style="font-weight:600;color:#1a3a6b;font-size:14px;">Choisir le cachet :</label>
+      <input type="file" id="cachetInput" accept="image/*" onchange="chargerCachet(event)" style="padding:6px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px;">
+      <div id="cachetPreview" style="width:60px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-size:11px;color:#999;">Aucun</div>
+      <button class="btn-red btn-small" onclick="supprimerCachet()">✖ Supprimer</button>
+    </div>
+
     <h3 class="section-title">📖 Saisie des notes / إدخال النقط</h3>
 
     <table class="saisie" style="width:100%;border-collapse:collapse;margin-top:10px;border:2px solid #000;background:#fff;table-layout:fixed;">
@@ -343,6 +352,7 @@
 
 <script>
 let logoDataURL = "";
+let cachetDataURL = "";
 let elevesData = {};
 
 /* =========================================================
@@ -365,9 +375,9 @@ const MATIERES_DEFAUT = [
    ========================================================= */
 function getAppreciationFR(note) {
   if (isNaN(note)) return "—";
-  if (note >= 16) return "Excellent";
-  if (note >= 14) return "Très bien";
-  if (note >= 12) return "Bien";
+  if (note >= 18) return "Excellent";
+  if (note >= 16) return "Très bien";
+  if (note > 12) return "Bien";
   if (note >= 10) return "Passable";
   return "Insuffisant";
 }
@@ -377,9 +387,9 @@ function getAppreciationFR(note) {
    ========================================================= */
 function getAppreciationAR(note) {
   if (isNaN(note)) return "—";
-  if (note >= 16) return "ممتاز";
+  if (note >= 18) return "ممتاز";
   if (note >= 14) return "جيد جداً";
-  if (note >= 12) return "جيد";
+  if (note > 12) return "جيد";
   if (note >= 10) return "مقبول";
   return "ضعيف";
 }
@@ -405,6 +415,24 @@ function supprimerLogo() {
   logoDataURL = "";
   document.getElementById("logoInput").value = "";
   document.getElementById("logoPreview").innerHTML = "Aucun logo";
+}
+
+/* 🔑 CHARGER CACHET */
+function chargerCachet(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    cachetDataURL = e.target.result;
+    document.getElementById("cachetPreview").innerHTML = `<img src="${cachetDataURL}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function supprimerCachet() {
+  cachetDataURL = "";
+  document.getElementById("cachetInput").value = "";
+  document.getElementById("cachetPreview").innerHTML = "Aucun";
 }
 
 /* =========================================================
@@ -543,8 +571,22 @@ function construireBulletinHTML(eleve, sem, annee, etab, etabAr) {
       </div>
     </div>
     
-    <div class="signature">
-      <div class="sign-dir">Signature de la direction<br>توقيع الإدارة</div>
+    <!-- 🔑 SIGNATURE + CACHET (ta7t, 3la limen) -->
+    <div style="margin-top:25px; display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+      <!-- Liser : khawi -->
+      <div></div>
+      
+      <!-- Limen : signature + cachet -->
+      <div style="text-align:center;">
+        <div class="signature" style="margin-top:0; justify-content:center;">
+          <div class="sign-dir">Signature de la direction<br>توقيع الإدارة</div>
+        </div>
+        
+        <!-- Cachet ta7t signature -->
+        <div style="margin-top:15px; text-align:center;">
+          ${cachetDataURL ? `<img src="${cachetDataURL}" alt="Cachet" style="max-width:160px; max-height:160px; object-fit:contain;">` : `<div style="height:100px; width:130px; border:1px dashed #ccc; margin:0 auto;"></div>`}
+        </div>
+      </div>
     </div>
   `;
 }
@@ -732,7 +774,6 @@ function genererTousBulletins() {
    TÉLÉCHARGER LES PDF SÉLECTIONNÉS
    ========================================================= */
 async function telechargerTousPDF() {
-  // 🔑 Khod ghir l'élèves li checkbox dialhom actif
   const keysSelectionnes = [];
   document.querySelectorAll(".check-eleve:checked").forEach(cb => {
     keysSelectionnes.push(cb.getAttribute("data-key"));
